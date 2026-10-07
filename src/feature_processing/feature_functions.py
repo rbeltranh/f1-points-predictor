@@ -71,7 +71,6 @@ def get_driver_feats(driver, sesh, global_feats):
     # Throtle and gear features
     
     driver_feats["mean_throttle"] = driver_fl_tele.Throttle.mean()
-    
     driver_feats["mean_gear"] = driver_fl_tele.nGear.mean()
     
     

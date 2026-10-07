@@ -12,15 +12,15 @@ The project will investigate whether telemetry-derived features — including **
 
 # Phase 0 — Define the Experiment
 
-* [ ] Define the exact prediction point: after FP3, before qualifying
-* [ ] Define the target:
+* [x] Define the exact prediction point: after FP3, before qualifying
+* [x] Define the target:
 
   * `1` → driver finishes P1–P10
   * `0` → driver finishes P11+
-* [ ] Define what information is allowed as model input
-* [ ] Define what information constitutes data leakage
-* [ ] Define the initial evaluation metrics
-* [ ] Define the historical period to use
+* [x] Define what information is allowed as model input
+* [x] Define what information constitutes data leakage
+* [x] Define the initial evaluation metrics
+* [x] Define the historical period to use
 
 ---
 
@@ -28,24 +28,24 @@ The project will investigate whether telemetry-derived features — including **
 
 ## Data Sources
 
-* [ ] Choose primary F1 data source
-* [ ] Verify availability of FP1 telemetry
-* [ ] Verify availability of FP2 telemetry
-* [ ] Verify availability of FP3 telemetry
-* [ ] Verify availability of race results
-* [ ] Verify availability of driver/team information
-* [ ] Verify availability of tire information
-* [ ] Determine historical coverage
+* [x] Choose primary F1 data source
+* [x] Verify availability of FP1 telemetry
+* [x] Verify availability of FP2 telemetry
+* [x] Verify availability of FP3 telemetry
+* [x] Verify availability of race results
+* [x] Verify availability of driver/team information
+* [x] Verify availability of tire information
+* [x] Determine historical coverage
 
 ## Data Pipeline
 
-* [ ] Create reproducible data downloader
-* [ ] Download raw session data
-* [ ] Save raw data without modification
-* [ ] Create data directory structure
-* [ ] Create data manifest
-* [ ] Record unavailable/missing sessions
-* [ ] Add logging/error handling to downloader
+* [x] Create reproducible data downloader
+* [x] Download raw session data
+* [x] Save raw data without modification
+* [x] Create data directory structure
+* [x] Create data manifest
+* [x] Record unavailable/missing sessions
+* [x] Add logging/error handling to downloader
 
 Suggested structure:
 
@@ -80,17 +80,17 @@ Bahrain   NOR       1
 
 ## Tasks
 
-* [ ] Build race-results dataset
-* [ ] Create `final_position`
-* [ ] Create binary `top_10` target
-* [ ] Build driver/session mapping
-* [ ] Join FP1 data
-* [ ] Join FP2 data
-* [ ] Join FP3 data
-* [ ] Handle drivers missing a practice session
-* [ ] Handle driver substitutions
-* [ ] Document missing-data rules
-* [ ] Validate number of observations per race
+* [x] Build race-results dataset
+* [x] Create `final_position`
+* [x] Create binary `top_10` target
+* [x] Build driver/session mapping
+* [x] Join FP1 data
+* [x] Join FP2 data
+* [x] Join FP3 data
+* [x] Handle drivers missing a practice session
+* [x] Handle driver substitutions
+* [x] Document missing-data rules
+* [x] Validate number of observations per race
 
 Target dataset concept:
 
@@ -116,23 +116,23 @@ driver × session × lap
 
 ## Speed
 
-* [ ] Mean speed
-* [ ] Median speed
-* [ ] Maximum speed
-* [ ] Speed standard deviation
-* [ ] Sector-level speed statistics
+* [x] Mean speed
+* [x] Median speed
+* [x] Maximum speed
+* [x] Speed standard deviation
+* [x] Sector-level speed statistics
 
 ## Throttle
 
-* [ ] Mean throttle
-* [ ] Median throttle
-* [ ] Full-throttle percentage
-* [ ] Throttle variability
-* [ ] Throttle application/reapplication metrics
+* [x] Mean throttle
+* [x] Median throttle
+* [x] Full-throttle percentage
+* [x] Throttle variability
+* [x] Throttle application/reapplication metrics
 
 ## Braking
 
-* [ ] Brake percentage
+* [x] Brake percentage
 * [ ] Number of braking events
 * [ ] Average braking duration
 * [ ] Braking intensity
@@ -142,12 +142,12 @@ driver × session × lap
 
 ## RPM / Gear
 
-* [ ] Mean RPM
-* [ ] Maximum RPM
-* [ ] RPM variability
-* [ ] Mean gear
-* [ ] Maximum gear
-* [ ] Gear-change count
+* [x] Mean RPM
+* [x] Maximum RPM
+* [x] RPM variability
+* [x] Mean gear
+* [x] Maximum gear
+* [x] Gear-change count
 
 ---
 
@@ -161,7 +161,7 @@ driver × session
 
 ## Pace
 
-* [ ] Best lap time
+* [x] Best lap time
 * [ ] Median lap time
 * [ ] Mean lap time
 * [ ] Lap-time percentile statistics
