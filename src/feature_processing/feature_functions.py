@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from fastf1 import get_session as gs
-
 SEASON = 2026
 SESSIONS = ["FP1", "FP2", "FP3"]
 
@@ -25,7 +24,7 @@ def get_diff_geom_feats(telemetry_df):
     
     return speed_curvature_corr, mean_curvature, max_curvature
 
-def get_driver_feats(driver, sesh, global_feats):
+def get_driver_feats(driver, sesh, global_feats, season = SEASON):
     
     driver_laps = sesh.laps.pick_drivers(driver)
     if driver_laps.empty:
@@ -34,7 +33,7 @@ def get_driver_feats(driver, sesh, global_feats):
     driver_fl = driver_laps.pick_fastest()
     try:
         driver_fl_tele = driver_fl.telemetry
-    except AttributeError:
+    except (AttributeError, KeyError):
         print(f"Driver {driver} has not telemetry info, returning None")
         return None
     
@@ -42,7 +41,7 @@ def get_driver_feats(driver, sesh, global_feats):
     
     # Context Features
     driver_feats["race"] = sesh.event.OfficialEventName
-    driver_feats["season"] = SEASON
+    driver_feats["season"] = season
     driver_feats["driver"] = driver
     driver_feats["team"] = driver_fl.Team
     
@@ -89,12 +88,12 @@ def get_driver_feats(driver, sesh, global_feats):
     return driver_feats | global_feats
 
 
-def get_all_drivers_feats(sesh, global_feats):
+def get_all_drivers_feats(sesh, global_feats, season):
     all_drivers_feats = []
     all_drivers = list(sesh.laps.DriverNumber.unique())
     for driver in all_drivers:
         print(f"Getting {sesh.name} features for driver {driver}")
-        all_drivers_feats.append(get_driver_feats(driver, sesh, global_feats))
+        all_drivers_feats.append(get_driver_feats(driver, sesh, global_feats, season))
         
     return all_drivers_feats
 
@@ -117,13 +116,12 @@ def get_global_features(sesh):
     return global_feats
 
 
-def generate_features_per_session(race: str, s: str) -> pd.DataFrame:
+def generate_features_per_session(race: str, s: str, season = SEASON) -> pd.DataFrame:
     "Generates features per session given a specific race weekend and session"
-    per_sesh_feats = []
-    fp_sesh = gs(SEASON, race, s)
+    fp_sesh = gs(season, race, s)
     fp_sesh.load()
     global_feats = get_global_features(fp_sesh)
-    all_drivers_feats = get_all_drivers_feats(fp_sesh, global_feats)
+    all_drivers_feats = get_all_drivers_feats(fp_sesh, global_feats, season)
     clean_feats = [feat for feat in all_drivers_feats if feat]
     clean_feats_df = pd.DataFrame(clean_feats)
     clean_feats_df["session"] = s
@@ -131,17 +129,17 @@ def generate_features_per_session(race: str, s: str) -> pd.DataFrame:
     return clean_feats_df
 
 
-def generate_features_per_race(race: str) -> pd.DataFrame:
+def generate_features_per_race(race: str, season:str) -> pd.DataFrame:
     "Generate features for all sessions of a given race weekend"
     per_race_feats = []
     for s in SESSIONS:
         try:
-            per_race_feats.append(generate_features_per_session(race, s))
+            per_race_feats.append(generate_features_per_session(race, s, season))
         except ValueError as e:
             print(f"Skipping {s} for {race}: {e}")
             continue
 
     if not per_race_feats:
         return pd.DataFrame()
-
+    
     return pd.concat(per_race_feats, ignore_index=True)

@@ -1,52 +1,94 @@
+import os
+import sys
+import glob
 import pandas as pd
 import fastf1 as f1
 from fastf1 import get_session as gs
-from datetime import datetime
+from fastf1.exceptions import RateLimitExceededError
+from datetime import datetime, timedelta
 
-from feature_functions import *
+from feature_functions import generate_features_per_race
 
-today = datetime.today()
-SEASON = 2026
-SESSIONS = ["FP1", "FP2", "FP3"]
+RATE_LIMITED = 75   # must match RATE_LIMITED in the Makefile
+SEASONS = range(2022, 2027)
 
-TARGET_COLUMNS = ["driver", "race", "top10"]
+os.makedirs("cache", exist_ok=True)
+os.makedirs("checkpoints", exist_ok=True)
+f1.Cache.enable_cache("cache")
 
-
-# get target
-
-all_events = f1.get_event_schedule(SEASON)
-valid_events_condition = (all_events.RoundNumber > 0) & (all_events.Session1DateUtc <= today)
-total_races = all_events[["RoundNumber", "OfficialEventName"]][valid_events_condition]
-total_races.reset_index(drop=True, inplace=True)
-all_race_results = []
-
-for row in total_races.itertuples():
-    race = gs(SEASON, row.RoundNumber, 'R')
-    race.load()
-    result = race.results[["DriverNumber", "Position"]]
-    result["officialName"] = row.OfficialEventName
-    all_race_results.append(result)
-    
-    
-all_race_results = pd.concat(all_race_results, ignore_index=True)
-all_race_results["top10"] = all_race_results["Position"] <= 10
-all_race_results["top10"] = all_race_results["top10"].astype(int)
-column_remame = {"DriverNumber" : "driver", "officialName" : "race"}
-all_race_results.rename(columns = column_remame, inplace = True)
-
-target_df = all_race_results[TARGET_COLUMNS]
+cutoff = datetime.today() - timedelta(days=4)
 
 
-# get features
+def checkpoint_path(season, round_number):
+    return f"checkpoints/{season}_{round_number:02d}.csv"
 
-all_valid_races = list(target_df.race.unique())
 
-all_races_features_dfs = [generate_features_per_race(race) for race in all_valid_races]
+def get_race_target(season, round_number):
+    """Top-10 label per driver for one race. Returns None if results aren't available."""
+    race = gs(season, round_number, "R")
+    race.load(laps=False, telemetry=False, weather=False, messages=False)
 
-all_races_features = pd.concat(all_races_features_dfs)
+    results = race.results[["DriverNumber", "Position"]].copy()
+    if results.empty or results["Position"].isna().all():
+        return None
 
-final_dataset = pd.merge(all_races_features, target_df, how = 'left', on = ["driver", "race"])
+    results["top10"] = (results["Position"] <= 10).astype(int)
+    results["season"] = season
+    results["race"] = race.event.OfficialEventName
+    results = results.rename(columns={"DriverNumber": "driver"})
+    results["driver"] = results["driver"].astype(str)
+    return results[["season", "race", "driver", "top10"]]
 
-final_dataset.to_csv("final_dataset.csv")
 
-print("final dataset written to final_dataset.csv")
+def build_gp_dataset(season, round_number):
+    """Features + target for one Grand Prix, with checkpointing."""
+    path = checkpoint_path(season, round_number)
+    if os.path.exists(path):
+        print(f"[skip] {season} round {round_number} already downloaded")
+        return
+
+    print(f"[get ] {season} round {round_number}")
+
+    target = get_race_target(season, round_number)
+    if target is None:
+        print(f"[warn] no race results for {season} round {round_number}, not checkpointing")
+        return
+
+    feats = generate_features_per_race(round_number, season)
+    if feats.empty:
+        print(f"[warn] no features for {season} round {round_number}, not checkpointing")
+        return
+
+    feats["driver"] = feats["driver"].astype(str)
+    df = feats.merge(target, how="left", on=["season", "race", "driver"])
+    df.to_csv(path, index=False)   # written only once the whole GP succeeded
+    print(f"[save] {path} ({len(df)} rows)")
+
+
+def main():
+    rate_limited = False
+    try:
+        for season in SEASONS:
+            schedule = f1.get_event_schedule(season)
+            valid = (schedule.RoundNumber > 0) & (schedule.Session5DateUtc <= cutoff)
+            for round_number in schedule.loc[valid, "RoundNumber"]:
+                build_gp_dataset(season, int(round_number))
+    except RateLimitExceededError:
+        rate_limited = True
+        print("\nRate limit hit. Progress is saved in checkpoints/.")
+
+    # Always combine whatever has been downloaded so far
+    files = sorted(glob.glob("checkpoints/*.csv"))
+    if files:
+        all_data = pd.concat(
+            (pd.read_csv(f, dtype={"driver": str}) for f in files),
+            ignore_index=True,
+        )
+        all_data.to_csv("all_data.csv", index=False)
+        print(f"all_data.csv written from {len(files)} Grand Prix checkpoints")
+
+    return RATE_LIMITED if rate_limited else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

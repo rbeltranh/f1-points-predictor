@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+src/feature_processing/cache
+src/feature_processing/checkpoints/*.csv
+cache
+
 # C extensions
 *.so
 
