@@ -1,0 +1,56 @@
+artifact_path: mlflow-artifacts:/1/models/m-d537af1910be4cec9d7ff2fd5f384c56/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.14.7
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.9.1
+    skops_trusted_types: null
+is_signature_from_type_hint: false
+mlflow_version: 3.17.1
+model_id: m-d537af1910be4cec9d7ff2fd5f384c56
+model_size_bytes: 364659
+model_uuid: m-d537af1910be4cec9d7ff2fd5f384c56
+prompts: null
+run_id: 54eb4570f76e447e80aed271920a0276
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "string", "name": "race", "required": true}, {"type": "long",
+    "name": "season", "required": true}, {"type": "long", "name": "driver", "required":
+    true}, {"type": "string", "name": "team", "required": true}, {"type": "double",
+    "name": "lap_time", "required": true}, {"type": "double", "name": "sector_1_time",
+    "required": true}, {"type": "double", "name": "sector_2_time", "required": true},
+    {"type": "double", "name": "sector_3_time", "required": true}, {"type": "string",
+    "name": "tyre_compound", "required": true}, {"type": "double", "name": "tyre_age",
+    "required": true}, {"type": "double", "name": "mean_speed", "required": true},
+    {"type": "double", "name": "max_speed", "required": true}, {"type": "double",
+    "name": "speed_std", "required": true}, {"type": "double", "name": "mean_rpm",
+    "required": true}, {"type": "double", "name": "max_rpm", "required": true}, {"type":
+    "double", "name": "rpm_std", "required": true}, {"type": "double", "name": "mean_throttle",
+    "required": true}, {"type": "double", "name": "mean_gear", "required": true},
+    {"type": "double", "name": "speed_curvature_corr", "required": true}, {"type":
+    "double", "name": "mean_curvature", "required": true}, {"type": "double", "name":
+    "max_curvature", "required": true}, {"type": "double", "name": "rpm_speed_corr",
+    "required": true}, {"type": "double", "name": "throttle_speed_corr", "required":
+    true}, {"type": "double", "name": "fastest_lap", "required": true}, {"type": "double",
+    "name": "air_temp_mean", "required": true}, {"type": "double", "name": "air_temp_max",
+    "required": true}, {"type": "double", "name": "air_temp_min", "required": true},
+    {"type": "double", "name": "track_temp_mean", "required": true}, {"type": "double",
+    "name": "track_temp_max", "required": true}, {"type": "double", "name": "track_temp_min",
+    "required": true}, {"type": "string", "name": "session", "required": true}]'
+  outputs: '[{"type": "double", "required": true}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-10-16 19:50:13.613555'
