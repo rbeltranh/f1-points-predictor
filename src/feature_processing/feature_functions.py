@@ -46,7 +46,7 @@ def get_driver_feats(driver, sesh, global_feats, season = SEASON):
     driver_feats["team"] = driver_fl.Team
     
     # Time features
-    driver_feats["lap_time"] = driver_fl.Time.total_seconds()
+    driver_feats["lap_time"] = driver_fl.LapTime.total_seconds()
     driver_feats["sector_1_time"] = driver_fl.Sector1Time.total_seconds()
     driver_feats["sector_2_time"] = driver_fl.Sector2Time.total_seconds()
     driver_feats["sector_3_time"] = driver_fl.Sector3Time.total_seconds()
@@ -99,7 +99,7 @@ def get_all_drivers_feats(sesh, global_feats, season):
 
 def get_global_features(sesh):
     global_feats = {}
-    fastest_lap = sesh.laps.pick_fastest().Time.total_seconds()
+    fastest_lap = sesh.laps.pick_fastest().LapTime.total_seconds()
     global_feats["fastest_lap"] = fastest_lap
     # get weather info
     weather_data = sesh.weather_data

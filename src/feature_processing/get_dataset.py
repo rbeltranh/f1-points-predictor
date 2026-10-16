@@ -76,6 +76,8 @@ def main():
     except RateLimitExceededError:
         rate_limited = True
         print("\nRate limit hit. Progress is saved in checkpoints/.")
+    except f1.exceptions.DataNotLoadedError:
+        print(f"\nCannot load data for {season} race {round_number}")
 
     # Always combine whatever has been downloaded so far
     files = sorted(glob.glob("checkpoints/*.csv"))

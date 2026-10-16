@@ -353,9 +353,9 @@ top_10
 
 ## Target
 
-* [ ] Calculate class balance
-* [ ] Plot top-10 vs non-top-10 distribution
-* [ ] Check class imbalance across seasons
+* [x] Calculate class balance
+* [x] Plot top-10 vs non-top-10 distribution
+* [x] Check class imbalance across seasons
 
 ## Features
 
