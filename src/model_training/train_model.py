@@ -6,11 +6,18 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 
 # Part 1. Initialize data and train test split
 
-data = pd.read_csv("../feature_processing/all_data.csv")
+DATA_PATH = Path(__file__).resolve().parents[1] / "feature_processing" / "all_data.csv"
+if not DATA_PATH.exists():
+    raise FileNotFoundError(
+        f"Dataset not found at {DATA_PATH}. Run `make create-dataset` first."
+    )
+
+data = pd.read_csv(DATA_PATH)
 y_data = data["top10"]
 x_data = data.drop(columns=["top10"])
 num_cols = x_data.select_dtypes(include="number").columns
@@ -53,6 +60,10 @@ model_pipeline = Pipeline(
 
 print(y_test.value_counts(normalize=True))
 
+
+# Use a dedicated active experiment instead of relying on MLflow's deleted
+# default experiment in an existing tracking database.
+mlflow.set_experiment("f1-top10-training")
 
 with mlflow.start_run(run_name="logreg_baseline"):
     model_pipeline.fit(X_train, y_train)
