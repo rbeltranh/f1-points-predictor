@@ -1,0 +1,92 @@
+# Save as: .github/workflows/retrain-model.yml
+name: Retrain model
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/feature_processing/all_data.csv"
+  workflow_dispatch:  # lets you run it manually from the Actions tab
+
+# If new data is pushed while a run is going, drop the old run and use the new data
+concurrency:
+  group: retrain-model
+  cancel-in-progress: true
+
+permissions:
+  contents: write  # needed to create tags and releases
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v7
+        with:
+          lfs: true  # harmless if you don't use Git LFS; required if the CSV is in LFS
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: "Train (CI mode: writes model + metrics files, no MLflow)"
+        # `uv run` puts the project's .venv on PATH, so the makefile can call plain `python`.
+        # train_model.py detects GITHUB_ACTIONS=true and skips MLflow automatically.
+        run: uv run make train  # <-- replace `train` with your makefile target name
+
+      - name: Show metrics
+        run: cat src/model_training/artifacts/remote_workflows/metrics.json
+
+      - name: Upload model and metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model
+          path: src/model_training/artifacts/remote_workflows/
+          if-no-files-found: error
+
+      # The artifact above is always uploaded, so even a rejected model can be
+      # downloaded from the run page. Only releases are gated by accuracy.
+      - name: Compare with latest release
+        id: compare
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          # How far accuracy may drop below the latest release and still publish.
+          # The test split changes whenever the CSV changes, so a small
+          # tolerance (e.g. 0.005) avoids rejecting models over noise.
+          TOLERANCE: "0.0"
+        run: |
+          NEW=$(jq -r .accuracy src/model_training/artifacts/remote_workflows/metrics.json)
+          if gh release download --pattern metrics.json --dir previous --clobber 2>/dev/null; then
+            OLD=$(jq -r .accuracy previous/metrics.json)
+            echo "Latest release accuracy: $OLD | new accuracy: $NEW | tolerance: $TOLERANCE"
+            if awk -v n="$NEW" -v o="$OLD" -v t="$TOLERANCE" 'BEGIN { exit !(n >= o - t) }'; then
+              echo "publish=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+              echo "::warning::New model ($NEW) is worse than the latest release ($OLD). Not publishing."
+            fi
+          else
+            echo "No previous release found. Publishing the first model."
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish release
+        if: steps.compare.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          DIR=src/model_training/artifacts/remote_workflows
+          ACC=$(jq -r .accuracy "$DIR/metrics.json")
+          gh release create "model-${{ github.run_number }}-${{ github.run_attempt }}" \
+            "$DIR"/* \
+            --title "Model #${{ github.run_number }}" \
+            --notes "Accuracy: $ACC (commit ${{ github.sha }})" \
+            --target "${{ github.sha }}"
