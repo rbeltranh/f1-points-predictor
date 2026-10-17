@@ -1,7 +1,11 @@
+
 name: run-unit-tests
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
   workflow_dispatch:
@@ -12,7 +16,22 @@ permissions:
 jobs:
   run-unit-tests:
     runs-on: ubuntu-latest
-    steps:
-      - name: Run tests
-        run: make run-unit-tests
 
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        run: uv python install 3.14.7
+
+      - name: Install project dependencies
+        run: uv sync --locked --all-groups --python 3.14.7
+
+      - name: Run unit tests
+        run: uv run --locked --python 3.14.7 make run-unit-tests
