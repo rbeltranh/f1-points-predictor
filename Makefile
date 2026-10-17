@@ -36,3 +36,7 @@ run-mlfow-server:
 
 run-unit-tests:
 	pytest test/test_features.py
+
+
+train-model:
+	uv run src/model_training/train_model.py
