@@ -32,3 +32,7 @@ run-mlfow-server:
 	mlflow server --port 5000 \
   	--backend-store-uri sqlite:///mlflow.db \
   	--default-artifact-root $(CURDIR)/src/model_training/artifacts
+
+
+run-unit-tests:
+	pytest test/test_features.py
