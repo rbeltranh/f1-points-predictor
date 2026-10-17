@@ -38,7 +38,7 @@ jobs:
       - name: "Train (CI mode: writes model + metrics files, no MLflow)"
         # `uv run` puts the project's .venv on PATH, so the makefile can call plain `python`.
         # train_model.py detects GITHUB_ACTIONS=true and skips MLflow automatically.
-        run: uv run make train  # <-- replace `train` with your makefile target name
+        run: uv run make train-model
 
       - name: Show metrics
         run: cat src/model_training/artifacts/remote_workflows/metrics.json
